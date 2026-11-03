@@ -561,7 +561,7 @@ ol.learn{margin:0;padding-left:22px;display:grid;gap:6px;max-width:80ch}
       else show('หน้านี้บันทึกไฟล์ไม่ได้ ให้ใช้ปุ่ม “คัดลอกเนื้อหาทั้งหมด” ในแท็บสไลด์แทน');
     } else {const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);show(okMsg)}
   }
-  const fname=ext=>'brand-'+(v('brand')||v('name')||'team').replace(/[^\w\u0E00-\u0E7F-]+/g,'-').slice(0,40)+ext;
+  const fname=ext=>{const slug=(v('brand')+' '+v('name')).replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,30);const d=new Date(),z=n=>String(n).padStart(2,'0');return 'brand-'+(slug?slug+'-':'')+d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+ext};
   function bindFile(sb,ob,inp,msg){
     const show=t=>{msg.textContent=t};
     sb.addEventListener('click',()=>{const data=JSON.stringify({app:'lets-build-a-brand',v:3,saved:new Date().toISOString(),data:S},null,1);saveBlob(fname('.json'),new Blob([data],{type:'application/json'}),show,'บันทึกไฟล์งานแล้ว เก็บไฟล์นี้ไว้เพื่อเปิดทำต่อ')});
