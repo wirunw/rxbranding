@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
 
 :root{
@@ -562,10 +563,9 @@ ol.learn{margin:0;padding-left:22px;display:grid;gap:6px;max-width:80ch}
       ta('lab','ผลจากแล็บหรืองานวิจัยที่ทีมมี','เช่น พัฒนาสูตรในวิชาปฏิบัติการ ทดสอบความคงตัว 1 เดือน','เขียนเฉพาะระดับที่เปิดเผยได้ ห้ามใส่สูตรจริงหรือผลที่ยังไม่เผยแพร่ เพราะข้อความนี้จะไปอยู่ใน prompt')+
       ta('howuse','ลูกค้าใช้อย่างไร และช่วยเขาได้ตรงไหน','เช่น กลิ้งที่ข้อมือแล้วสูดดมเมื่อรู้สึกอึดอัดบนรถไฟฟ้า','')+'</div>'+
       '<div class="row" style="margin-top:12px"><button type="button" id="loadEx">ดูตัวอย่างที่กรอกครบทุกรอบ</button><span class="note" id="exMsg" role="status"></span></div></div>'+
-      '<div class="card datacard"><h3>บันทึกงาน เปิดงานเดิม และล้างข้อมูล</h3><p class="lead">ข้อมูลเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น ก่อนปิดเครื่องให้กด “บันทึกงานเป็นไฟล์” เก็บไว้ แล้วใช้ “เปิดไฟล์งานเดิม” เพื่อทำต่อที่เครื่องอื่นหรือวันอื่น ถ้าใช้เครื่องส่วนกลาง ให้ล้างข้อมูลเมื่อจบคาบ</p><div class="row" style="margin-top:10px"><button type="button" class="primary" id="saveFile">บันทึกงานเป็นไฟล์</button><button type="button" id="openFile">เปิดไฟล์งานเดิม</button><input type="file" id="fileIn" accept=".json,application/json" hidden><button type="button" class="danger" id="clearAll">ล้างข้อมูลทั้งหมด</button><span class="note" id="clearMsg" role="status"></span></div></div></section>';
+      '<div class="card datacard"><h3>เก็บผลงาน และล้างข้อมูล</h3><p class="lead">ข้อมูลเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น ถ้าปิดเบราว์เซอร์แล้วเปิดใหม่ในเครื่องเดิม ข้อมูลยังอยู่ แต่ถ้าเปลี่ยนเครื่องจะไม่ตามไป ก่อนเลิกคาบให้ไปที่แท็บ “สไลด์ของทีม” แล้วกด “ส่งออกเป็น PowerPoint” เก็บไว้ ถ้าใช้เครื่องส่วนกลาง ให้ล้างข้อมูลเมื่อจบคาบ</p><div class="row" style="margin-top:10px"><button type="button" class="danger" id="clearAll">ล้างข้อมูลทั้งหมด</button><span class="note" id="clearMsg" role="status"></span></div></div></section>';
     app.querySelectorAll('[data-team]').forEach(el=>el.addEventListener('input',()=>{S.team[el.dataset.team]=el.value;save()}));
     twoClick($('#loadEx'),'กดอีกครั้งเพื่อแทนที่ข้อมูลเดิมด้วยตัวอย่าง',()=>hasData(),()=>{S=norm(JSON.parse(JSON.stringify(EXAMPLE)));save();render();renderTabs();$('#exMsg').textContent='เติมตัวอย่างแบรนด์สมมติ “ปลุกใจ” แล้ว ลองเปิดดูทุกรอบ แล้วล้างข้อมูลก่อนเริ่มงานของทีม'});
-    bindFile($('#saveFile'),$('#openFile'),$('#fileIn'),$('#clearMsg'));
     twoClick($('#clearAll'),'กดอีกครั้งเพื่อยืนยันการล้างข้อมูล',()=>true,()=>{S=blank();try{localStorage.removeItem(SK)}catch(e){}render();renderTabs();$('#clearMsg').textContent='ล้างข้อมูลเรียบร้อยแล้ว'});
     nav(app);
   }
@@ -579,14 +579,7 @@ ol.learn{margin:0;padding-left:22px;display:grid;gap:6px;max-width:80ch}
     } else {const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);show(okMsg)}
   }
   const fname=ext=>{const slug=(v('brand')+' '+v('name')).replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,30);const d=new Date(),z=n=>String(n).padStart(2,'0');return 'brand-'+(slug?slug+'-':'')+d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+ext};
-  function bindFile(sb,ob,inp,msg){
-    const show=t=>{msg.textContent=t};
-    sb.addEventListener('click',()=>{const data=JSON.stringify({app:'lets-build-a-brand',v:3,saved:new Date().toISOString(),data:S},null,1);saveBlob(fname('.json'),new Blob([data],{type:'application/json'}),show,'บันทึกไฟล์งานแล้ว เก็บไฟล์นี้ไว้เพื่อเปิดทำต่อ')});
-    twoClick(ob,'กดอีกครั้งเพื่อเปิดไฟล์ (ข้อมูลในเครื่องนี้จะถูกแทนที่)',()=>hasData(),()=>inp.click());
-    inp.addEventListener('change',()=>{const f=inp.files&&inp.files[0];if(!f)return;const rd=new FileReader();
-      rd.onload=()=>{try{const j=JSON.parse(rd.result),d=j&&j.data?j.data:j;if(!d||typeof d!=='object'||!d.team)throw 0;S=norm(d);save();render();renderTabs();$('#clearMsg')&&($('#clearMsg').textContent='เปิดงานจากไฟล์ '+f.name+' แล้ว')}catch(e){show('ไฟล์นี้ไม่ใช่ไฟล์งานจากหน้านี้')}inp.value=''};
-      rd.onerror=()=>show('อ่านไฟล์ไม่สำเร็จ');rd.readAsText(f)});
-  }
+
   function twoClick(b,armTxt,need,act){const orig=b.textContent;let t=null;b.addEventListener('click',()=>{if(need()&&!t){b.textContent=armTxt;b.classList.add('armed');t=setTimeout(()=>{t=null;b.textContent=orig;b.classList.remove('armed')},4000);return}clearTimeout(t);t=null;act()})}
   const tf=(k,l,ph)=>'<div class="field"><label for="t_'+k+'">'+l+'</label><input id="t_'+k+'" data-team="'+k+'" value="'+esc(S.team[k])+'" placeholder="'+esc(ph)+'"></div>';
   const fieldHTML=(r,[k,l,t,ph])=>'<div class="field'+(t==='area'&&r.n!==4?' wide':'')+'"><label for="f_'+k+'">'+l+'</label>'+(t==='input'?'<input id="f_'+k+'" data-f="'+k+'" value="'+esc(S.f[k]||'')+'" placeholder="'+esc(ph)+'">':'<textarea id="f_'+k+'" data-f="'+k+'" placeholder="'+esc(ph)+'">'+esc(S.f[k]||'')+'</textarea>')+'</div>';
@@ -693,8 +686,8 @@ ol.learn{margin:0;padding-left:22px;display:grid;gap:6px;max-width:80ch}
   let ro=null;
   function renderSlides(app){
     const L=S.lesson;
-    app.innerHTML='<section class="panel"><div class="card"><h2>สไลด์แผนธุรกิจของทีม</h2><p class="lead">สไลด์ 13 หน้านี้สร้างจากข้อมูลที่ทีมบันทึกไว้ในแต่ละรอบ เรียงตามลำดับที่ใช้ pitch จริง หน้า 3 มาจากข้อมูลในหน้าเริ่มต้น หน้า 4 และหน้า 11–13 มาจากรอบที่ 7 ที่ทำต่อหลังคาบ หน้า 14 เป็นภาคผนวกเรื่องการใช้ AI ไม่ต้องนำเสนอ ถ้าอยากแก้ข้อความ ให้กลับไปแก้ในรอบนั้น ช่องที่ยังว่างจะแสดงเป็นตัวเอียงสีเทา</p>'+
-      '<div class="row" style="margin-top:12px"><button type="button" class="primary" id="present">นำเสนอแบบเต็มจอ</button><button type="button" id="pdf">ส่งออกเป็น PDF</button><button type="button" id="cpall">คัดลอกเนื้อหาทั้งหมด</button><button type="button" id="saveFile2">บันทึกงานเป็นไฟล์</button><span class="copied" id="sMsg" hidden></span></div></div>'+
+    app.innerHTML='<section class="panel"><div class="card"><h2>สไลด์แผนธุรกิจของทีม</h2><p class="lead">สไลด์ 13 หน้านี้สร้างจากข้อมูลที่ทีมบันทึกไว้ในแต่ละรอบ เรียงตามลำดับที่ใช้ pitch จริง หน้า 3 มาจากข้อมูลในหน้าเริ่มต้น หน้า 4 และหน้า 11–13 มาจากรอบที่ 7 ที่ทำต่อหลังคาบ หน้า 14 เป็นภาคผนวกเรื่องการใช้ AI ไม่ต้องนำเสนอ ถ้าอยากแก้ข้อความ ให้กลับไปแก้ในรอบนั้น ช่องที่ยังว่างจะแสดงเป็นตัวเอียงสีเทา ปุ่ม “ส่งออกเป็น PowerPoint” ให้ไฟล์ที่แก้ต่อได้ทุกตัวอักษร</p>'+
+      '<div class="row" style="margin-top:12px"><button type="button" class="primary" id="present">นำเสนอแบบเต็มจอ</button><button type="button" class="primary" id="pptx">ส่งออกเป็น PowerPoint</button><button type="button" id="pdf">ส่งออกเป็น PDF</button><button type="button" id="cpall">คัดลอกเนื้อหาทั้งหมด</button><span class="copied" id="sMsg" hidden></span></div></div>'+
       '<div class="card"><h3>สรุปสิ่งที่ทีมได้เรียนรู้จากการใช้ AI (แสดงในภาคผนวกท้ายชุดสไลด์)</h3><div class="fields">'+[['good','AI ช่วยเราได้ดีเรื่อง'],['fix','เรื่องที่ต้องแก้หรือทิ้ง'],['learn','สิ่งที่ทีมได้เรียนรู้']].map(([k,l])=>'<div class="field"><label for="l_'+k+'">'+l+'</label><textarea id="l_'+k+'" data-l="'+k+'">'+esc(L[k])+'</textarea></div>').join('')+'</div></div>'+
       '<div class="slgrid" id="slgrid"></div></section>';
     const draw=()=>{const g=$('#slgrid');g.innerHTML=slideList().map((h,i)=>'<figure><div class="slwrap">'+h+'</div><figcaption>หน้า '+(i+1)+'</figcaption></figure>').join('');scaleWraps(g);fitAll(g)};
@@ -704,7 +697,7 @@ ol.learn{margin:0;padding-left:22px;display:grid;gap:6px;max-width:80ch}
     $('#present').addEventListener('click',()=>openShow(0));
     $('#pdf').addEventListener('click',()=>exportPDF($('#sMsg')));
     $('#cpall').addEventListener('click',()=>copy(allText(),$('#sMsg'),$('#cpall').closest('.card'),'คัดลอกแล้ว'));
-    $('#saveFile2').addEventListener('click',()=>{const m=$('#sMsg');m.hidden=false;saveBlob(fname('.json'),new Blob([JSON.stringify({app:'lets-build-a-brand',v:3,saved:new Date().toISOString(),data:S},null,1)],{type:'application/json'}),t=>{m.textContent=t},'บันทึกไฟล์งานแล้ว')});
+    $('#pptx').addEventListener('click',()=>exportPPTX($('#sMsg')));
   }
   function allText(){
     const m=market();const out=['Let\'s Build a Brand! · '+(v('name')||'ทีม')+' · '+(v('brand')||''),'สมาชิก: '+v('members'),'ผลิตภัณฑ์: '+v('product'),'สมุนไพรหลักและรูปแบบ: '+v('herb'),'ผลจากแล็บหรืองานวิจัย: '+v('lab'),'ลูกค้าใช้อย่างไร: '+v('howuse'),''];
@@ -723,6 +716,142 @@ ol.learn{margin:0;padding-left:22px;display:grid;gap:6px;max-width:80ch}
   document.addEventListener('keydown',e=>{if($('#show').hidden)return;if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){cur++;drawShow();e.preventDefault()}else if(e.key==='ArrowLeft'||e.key==='PageUp'){cur--;drawShow()}else if(e.key==='Escape')closeShow()});
   window.addEventListener('resize',()=>{if(!$('#show').hidden)drawShow()});
   document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&!$('#show').hidden)drawShow()});
+  // ---------- PowerPoint export (editable, Pharm TU CI) ----------
+  async function exportPPTX(msg){
+    const show=t=>{msg.hidden=false;msg.textContent=t};
+    if(!window.PptxGenJS){show('โหลดเครื่องมือสร้าง PowerPoint ไม่สำเร็จ ลองรีเฟรชหน้าอีกครั้ง');return}
+    show('กำลังสร้างไฟล์ PowerPoint…');
+    try{
+      const P=new window.PptxGenJS(); P.layout='LAYOUT_WIDE'; P.title=(v('brand')||'แผนธุรกิจ'); P.author=v('members')||v('name')||'';
+      const C={red:'C8102E',deep:'8B0000',gold:'F4CD00',green:'006838',navy:'1D2D5F',parch:'FDF8EE',white:'FFFFFF',ink:'2C2C2C',gray:'5F5F5F',stone:'9E9E9E',pGreen:'E5F2EA',pRed:'FBE9EC',pGold:'FFF6D6',pNavy:'E3E7F1',line:'E2DFD8'};
+      const FONT='Sarabun', X0=0.55, XW=12.23, N=14, r=fin(), m=market();
+      const brand=v('brand')||'ชื่อแบรนด์', team=v('name')||'ชื่อทีม';
+      const T=(s,text,o)=>s.addText(text,Object.assign({fontFace:FONT,fontSize:16,color:C.ink,margin:0.04,valign:'top',fit:'shrink',isTextBox:true},o));
+      const box=(s,x,y,w,h,fill,o={})=>s.addShape(P.shapes.ROUNDED_RECTANGLE,{x,y,w,h,fill:{color:fill},line:{color:o.line||fill,width:o.lw||0.75},rectRadius:o.r??0.1});
+      const rect=(s,x,y,w,h,c)=>s.addShape(P.shapes.RECTANGLE,{x,y,w,h,fill:{color:c},line:{color:c}});
+      const val=(k,ph)=>v(k)?{text:v(k),options:{}}:{text:ph||'—',options:{italic:true,color:C.stone}};
+      const txt=(k,ph)=>[val(k,ph)];
+      const bul=(k,ph)=>{const L=lines(v(k));return L.length?L.map((x,i)=>({text:x,options:{bullet:{indent:14},breakLine:i<L.length-1}})):[{text:ph||'—',options:{italic:true,color:C.stone}}]};
+      const lb=(s,t,x,y,w,c)=>T(s,t,{x,y,w,h:0.34,fontSize:13,bold:true,color:c||C.navy,fit:'none'});
+      function shell(i,title,foot){
+        const s=P.addSlide(); s.background={color:C.white};
+        rect(s,0,0,13.333,0.95,C.red); rect(s,0,0.95,13.333,0.06,C.gold);
+        T(s,title,{x:X0,y:0.12,w:9.6,h:0.72,fontSize:26,bold:true,color:C.white,valign:'middle'});
+        T(s,brand,{x:10.2,y:0.12,w:2.6,h:0.72,fontSize:16,bold:true,color:C.gold,align:'right',valign:'middle'});
+        rect(s,0,1.01,0.1,6.04,C.red);
+        rect(s,0,7.05,13.333,0.45,C.deep);
+        T(s,team+' · '+(foot||'แผนธุรกิจเบื้องต้น'),{x:X0,y:7.05,w:9,h:0.45,fontSize:11,color:C.white,valign:'middle',fit:'none'});
+        T(s,i+'/'+N,{x:11.8,y:7.05,w:1,h:0.45,fontSize:11,color:C.white,align:'right',valign:'middle',fit:'none'});
+        return s;
+      }
+      // 1 cover
+      { const s=P.addSlide(); s.background={color:C.red};
+        rect(s,0,6.95,13.333,0.55,C.deep);
+        T(s,'แผนธุรกิจเบื้องต้น · ทีม '+team,{x:0.8,y:0.7,w:11.5,h:0.45,fontSize:18,bold:true,color:C.gold});
+        T(s,brand,{x:0.8,y:1.5,w:11.5,h:1.7,fontSize:66,bold:true,color:C.white,valign:'middle'});
+        T(s,txt('tagline','สโลแกนของแบรนด์'),{x:0.8,y:3.25,w:11.5,h:0.8,fontSize:28,color:C.gold});
+        rect(s,0.8,4.25,4,0.05,C.gold);
+        T(s,txt('product','ผลิตภัณฑ์สมุนไพรของทีม'),{x:0.8,y:4.45,w:11.5,h:1.2,fontSize:20,color:C.white});
+        T(s,txt('members','สมาชิกในทีม'),{x:0.8,y:6.95,w:7,h:0.55,fontSize:13,color:C.white,valign:'middle'});
+        T(s,'From Lab to Launch · Let\'s Build a Brand!',{x:7.5,y:6.95,w:5.2,h:0.55,fontSize:13,color:C.white,align:'right',valign:'middle',fit:'none'}); }
+      // 2 problem
+      { const s=shell(2,'ปัญหาที่เราอยากแก้ และลูกค้าที่เจอปัญหานั้น');
+        lb(s,'ปัญหาที่ลูกค้าเจอ',X0,1.3,5.9,C.red); T(s,bul('pains','ปัญหาบรรทัดละข้อ'),{x:X0,y:1.68,w:5.9,h:3.3,fontSize:20});
+        box(s,X0,5.15,5.9,1.6,'F1EFEA'); lb(s,'ตอนนี้ลูกค้าแก้ด้วย',X0+0.2,5.25,5.5,C.red); T(s,txt('now'),{x:X0+0.2,y:5.6,w:5.5,h:1.05,fontSize:15});
+        box(s,6.75,1.3,6.03,5.45,C.parch); lb(s,'ตัวอย่างลูกค้า 1 คน',6.95,1.45,5.6); T(s,txt('persona','persona'),{x:6.95,y:1.82,w:5.63,h:2.3,fontSize:18});
+        lb(s,'คนใช้',6.95,4.25,5.6,C.red); T(s,txt('user'),{x:6.95,y:4.6,w:5.63,h:0.85,fontSize:15});
+        lb(s,'คนจ่ายเงินและคนตัดสินใจ',6.95,5.5,5.6,C.red); T(s,txt('payer'),{x:6.95,y:5.85,w:5.63,h:0.8,fontSize:15}); }
+      // 3 product
+      { const s=shell(3,'ผลิตภัณฑ์ของเรา และที่มาจากแล็บ');
+        lb(s,'ผลิตภัณฑ์ของเรา',X0,1.3,6); T(s,txt('product','ผลิตภัณฑ์คืออะไร และใช้ทำอะไร'),{x:X0,y:1.68,w:6,h:1.8,fontSize:24,bold:true,color:C.navy});
+        lb(s,'ลูกค้าใช้อย่างไร และช่วยเขาได้ตรงไหน',X0,3.7,6); T(s,txt('howuse'),{x:X0,y:4.08,w:6,h:2.6,fontSize:18});
+        box(s,6.85,1.3,5.93,5.45,C.parch); lb(s,'สมุนไพรหลักและรูปแบบ',7.05,1.45,5.5); T(s,txt('herb'),{x:7.05,y:1.82,w:5.53,h:1.4,fontSize:18});
+        lb(s,'ที่มาจากแล็บหรืองานวิจัย',7.05,3.4,5.5); T(s,txt('lab'),{x:7.05,y:3.78,w:5.53,h:2.85,fontSize:17}); }
+      // 4 target & market
+      { const s=shell(4,'เราขายให้ใครก่อน และตลาดนี้ใหญ่แค่ไหน');
+        box(s,X0,1.3,5.2,5.45,C.parch); rect(s,X0,1.3,0.1,5.45,C.red);
+        lb(s,'กลุ่มเป้าหมายที่เลือก',X0+0.3,1.45,4.8); T(s,txt('target'),{x:X0+0.3,y:1.82,w:4.75,h:1.7,fontSize:22,bold:true,color:C.navy});
+        lb(s,'ทำไมเลือกกลุ่มนี้',X0+0.3,3.7,4.8); T(s,txt('why'),{x:X0+0.3,y:4.08,w:4.75,h:2.55,fontSize:17});
+        const cx=6.0; s.addShape(P.shapes.OVAL,{x:cx,y:1.35,w:2.7,h:2.7,fill:{color:C.pNavy},line:{color:'C9D0E3'}});
+        s.addShape(P.shapes.OVAL,{x:cx+0.45,y:2.15,w:1.8,h:1.8,fill:{color:C.navy},line:{color:C.navy}});
+        s.addShape(P.shapes.OVAL,{x:cx+0.9,y:3.0,w:0.9,h:0.9,fill:{color:C.red},line:{color:C.red}});
+        const rows=[['TAM','ตลาดทั้งหมด',m.tam,m.tpop?fmt(m.tpop)+' คน':'','8C96B3'],['SAM','ตลาดที่เราเข้าถึงได้',m.sam,m.pop?fmt(m.pop)+' คน'+(m.samPct!==null?' · '+pct(m.samPct)+' ของ TAM':''):'',C.navy],['SOM','ส่วนที่คาดว่าจะได้ (ปีที่ 3)',m.som,m.som?pct(m.share)+' ของ SAM'+(m.cust?' · ลูกค้าราว '+fmt(m.cust)+' คน':''):'',C.red]];
+        rows.forEach(([k,l,x,sub,c],i)=>{const y=1.35+i*0.92; box(s,8.95,y+0.12,0.85,0.45,c,{r:0.08}); T(s,k,{x:8.95,y:y+0.12,w:0.85,h:0.45,fontSize:14,bold:true,color:C.white,align:'center',valign:'middle',fit:'none'});
+          T(s,l,{x:9.9,y,w:2.9,h:0.3,fontSize:11.5,color:C.gray,fit:'none'}); T(s,x?mny(x)+' ต่อปี':'—',{x:9.9,y:y+0.27,w:2.9,h:0.38,fontSize:16,bold:true,color:C.navy}); T(s,sub,{x:9.9,y:y+0.62,w:2.9,h:0.28,fontSize:10.5,color:C.gray});});
+        box(s,6.0,4.3,6.78,2.45,C.parch); lb(s,'ที่มาของตัวเลข',6.2,4.42,6.3); T(s,txt('m_src'),{x:6.2,y:4.78,w:6.4,h:1.9,fontSize:14}); }
+      // 5 positioning
+      { const s=shell(5,'ทำไมลูกค้าต้องเลือกเรา');
+        rect(s,X0,1.35,0.12,2.2,C.gold); T(s,txt('positioning','สำหรับ … ที่ … [ชื่อแบรนด์] คือ … ที่ … ต่างจาก … เพราะ …'),{x:X0+0.35,y:1.35,w:XW-0.35,h:2.2,fontSize:24,bold:true,color:C.navy,valign:'middle'});
+        const w=(XW-0.5)/3,cols=[['ทางเลือกที่ลูกค้าใช้อยู่','compete',C.parch,C.navy],['เหมือนคู่แข่ง','same','F1EFEA',C.navy],['ต่างจากคู่แข่ง','diff',C.pGreen,C.green]];
+        cols.forEach(([l,k,f,c],i)=>{const x=X0+i*(w+0.25); box(s,x,3.85,w,2.9,f); lb(s,l,x+0.2,4.0,w-0.4,c); T(s,txt(k),{x:x+0.2,y:4.38,w:w-0.4,h:i===0?1.05:2.25,fontSize:17});
+          if(i===0){lb(s,'ลูกค้าเปรียบเทียบจาก',x+0.2,5.5,w-0.4,c); T(s,txt('axes'),{x:x+0.2,y:5.85,w:w-0.4,h:0.8,fontSize:15});}}); }
+      // 6 identity
+      { const s=shell(6,'ตัวตนของแบรนด์');
+        box(s,X0,1.35,6.0,5.4,C.red,{r:0.15});
+        T(s,brand,{x:X0+0.4,y:1.9,w:5.2,h:1.6,fontSize:54,bold:true,color:C.white,valign:'middle'});
+        T(s,txt('tagline','สโลแกน'),{x:X0+0.4,y:3.6,w:5.2,h:1.0,fontSize:22,color:C.gold});
+        const tr=v('traits').split(/[,،、]/).map(x=>x.trim()).filter(Boolean).slice(0,3);
+        tr.forEach((t,i)=>{box(s,X0+0.4+i*1.75,4.9,1.6,0.55,C.red,{line:C.gold,lw:1.5,r:0.27}); T(s,t,{x:X0+0.4+i*1.75,y:4.9,w:1.6,h:0.55,fontSize:14,color:C.white,align:'center',valign:'middle'});});
+        if(!tr.length) T(s,'บุคลิก 3 คำ',{x:X0+0.4,y:4.9,w:5,h:0.55,fontSize:14,italic:true,color:'F3C4CC'});
+        lb(s,'หน้าตาบรรจุภัณฑ์ สี และโลโก้',6.95,1.45,5.8); T(s,txt('look'),{x:6.95,y:1.85,w:5.83,h:4.8,fontSize:20}); }
+      // 7 claims
+      { const s=shell(7,'สิ่งที่เราสื่อสารได้ หลักฐาน และการขออนุญาต');
+        box(s,X0,1.3,6.0,3.35,C.pGreen); lb(s,'คำโฆษณาที่พูดได้',X0+0.2,1.42,5.6,C.green); T(s,bul('claimOk','บรรทัดละข้อ'),{x:X0+0.2,y:1.8,w:5.6,h:2.75,fontSize:18});
+        box(s,6.78,1.3,6.0,3.35,C.pRed); lb(s,'คำที่เราจะไม่พูด',6.98,1.42,5.6,C.red); T(s,bul('claimNo','บรรทัดละข้อ'),{x:6.98,y:1.8,w:5.6,h:2.75,fontSize:18});
+        [['หลักฐานที่มีแล้ว หรือที่ต้องไปหาเพิ่ม','evidence',X0],['เส้นทางการขออนุญาตกับ อย.','regpath',6.78]].forEach(([l,k,x])=>{box(s,x,4.85,6.0,1.9,C.parch); rect(s,x,4.85,0.1,1.9,C.gold); lb(s,l,x+0.25,4.95,5.6); T(s,txt(k),{x:x+0.25,y:5.3,w:5.6,h:1.35,fontSize:14});}); }
+      // 8 BMC
+      { const s=shell(8,'โมเดลธุรกิจ (Business Model Canvas)');
+        const cw=XW/10,y0=1.25,h=5.6,r1=h*0.36,r3=h*0.28,g=0.06;
+        const L={kp:[0,0,2,2,'8 พาร์ทเนอร์หลัก',C.navy],ka:[2,0,2,1,'7 กิจกรรมหลัก',C.navy],kr:[2,1,2,1,'6 ทรัพยากรหลัก',C.navy],vp:[4,0,2,2,'2 คุณค่าที่เสนอ',C.red],cr:[6,0,2,1,'4 ความสัมพันธ์กับลูกค้า',C.red],ch:[6,1,2,1,'3 ช่องทาง',C.red],cs:[8,0,2,2,'1 กลุ่มลูกค้า',C.red],cost:[0,2,5,1,'9 โครงสร้างต้นทุน',C.green],rs:[5,2,5,1,'5 กระแสรายได้',C.green]};
+        Object.entries(L).forEach(([k,[cx,ry,cs,rs,l,c]])=>{const x=X0+cx*cw,y=y0+[0,r1,r1*2][ry],w=cs*cw-g,hh=rs===2?r1*2-g:(ry===2?r3:r1)-g;
+          s.addShape(P.shapes.RECTANGLE,{x,y,w,h:hh,fill:{color:C.white},line:{color:c,width:1.25}}); rect(s,x,y,w,0.05,c);
+          T(s,l,{x:x+0.08,y:y+0.08,w:w-0.16,h:0.3,fontSize:11,bold:true,color:c,fit:'none'}); T(s,txt(k),{x:x+0.08,y:y+0.4,w:w-0.16,h:hh-0.48,fontSize:12.5});}); }
+      // 9 marketing
+      { const s=shell(9,'ลูกค้าจะรู้จัก ซื้อ และบอกต่อเราอย่างไร');
+        const w=(XW-0.4*4)/5;
+        ['รู้จัก','สนใจ','ซื้อ','ใช้','บอกต่อ'].forEach((t,i)=>{const x=X0+i*(w+0.4); box(s,x,1.3,w,2.6,i>2?C.red:C.navy); T(s,t,{x:x+0.15,y:1.4,w:w-0.3,h:0.45,fontSize:20,bold:true,color:C.gold,fit:'none'}); T(s,[ v('j'+(i+1))?{text:v('j'+(i+1)),options:{color:C.white}}:{text:'—',options:{color:'B8C0D8',italic:true}} ],{x:x+0.15,y:1.9,w:w-0.3,h:1.9,fontSize:14});
+          if(i<4) s.addShape(P.shapes.RIGHT_ARROW,{x:x+w+0.07,y:2.45,w:0.26,h:0.3,fill:{color:C.gold},line:{color:C.gold}});});
+        const w3=(XW-0.5)/3;
+        [['ช่องทางขาย',()=>txt('channels')],['คอนเทนต์ชิ้นแรก',()=>['c1','c2','c3'].map((k,i)=>({text:(i+1)+'. '+(v(k)||'—'),options:{breakLine:i<2}}))],['โปรโมชันช่วงเปิดตัว',()=>txt('promo')]].forEach(([l,f],i)=>{const x=X0+i*(w3+0.25); box(s,x,4.15,w3,2.6,C.parch); lb(s,l,x+0.2,4.27,w3-0.4); T(s,f(),{x:x+0.2,y:4.65,w:w3-0.4,h:2.0,fontSize:15});}); }
+      // 10 finance
+      { const s=shell(10,'ประมาณการทางการเงินเบื้องต้น');
+        if(r.has){ kpiList(r).forEach(([k,x],i)=>{const cx=X0+(i%2)*2.6,cy=1.3+Math.floor(i/2)*1.18; box(s,cx,cy,2.45,1.05,C.parch); T(s,k,{x:cx+0.12,y:cy+0.08,w:2.2,h:0.3,fontSize:11.5,bold:true,color:C.gray,fit:'none'}); T(s,x,{x:cx+0.12,y:cy+0.4,w:2.2,h:0.55,fontSize:17,bold:true,color:C.navy});});
+          s.addChart(P.charts.BAR,[{name:'รายได้',labels:r.M.map(x=>'ด.'+x.m),values:r.M.map(x=>Math.round(x.rev))},{name:'ต้นทุนรวม',labels:r.M.map(x=>'ด.'+x.m),values:r.M.map(x=>Math.round(x.varc+x.fixed))}],
+            {x:5.9,y:1.25,w:6.9,h:3.95,barDir:'col',barGrouping:'clustered',chartColors:['1D2D5F','C8102E'],showLegend:true,legendPos:'b',legendFontFace:FONT,legendFontSize:11,catAxisLabelFontFace:FONT,valAxisLabelFontFace:FONT,catAxisLabelFontSize:10,valAxisLabelFontSize:10,valAxisLabelFormatCode:'#,##0',valGridLine:{color:'E8E8E8',size:0.5},catGridLine:{style:'none'},showTitle:true,title:'รายได้และต้นทุนรวมรายเดือน 12 เดือนแรก (บาท)',titleFontFace:FONT,titleFontSize:12,titleColor:'1D2D5F'});
+        } else T(s,'ยังไม่มีตัวเลขการเงิน',{x:X0,y:2.5,w:XW,h:1,fontSize:22,italic:true,color:C.stone,align:'center'});
+        box(s,X0,5.35,XW,1.4,C.parch); rect(s,X0,5.35,0.1,1.4,C.gold);
+        T(s,'สมมติฐาน: ราคา '+fmt(S.fin.price)+' บาท · ต้นทุนผันแปร '+fmt(S.fin.unit_cost)+' บาท/ชิ้น · ส่วนแบ่งร้านค้า '+fmt(S.fin.fee_pct)+'% · ขายเดือนแรก '+fmt(S.fin.units_m1)+' ชิ้น · โตเดือนละ '+fmt(S.fin.growth_pct)+'%',{x:X0+0.25,y:5.42,w:XW-0.4,h:0.4,fontSize:13,bold:true,color:C.navy});
+        T(s,txt('finNote','ตัวเลขที่ยังไม่มั่นใจ และจะไปตรวจจากไหน'),{x:X0+0.25,y:5.82,w:XW-0.4,h:0.85,fontSize:13}); }
+      // 11 ask
+      { const s=shell(11,'เงินทุนที่เราต้องการ และเป้าหมายในปีแรก');
+        box(s,X0,1.3,5.9,5.45,C.navy,{r:0.15}); T(s,'เงินทุนที่ขอ',{x:X0+0.3,y:1.5,w:5.3,h:0.4,fontSize:16,bold:true,color:C.gold});
+        T(s,m.ask?fmt(m.ask)+' บาท':'—',{x:X0+0.3,y:1.9,w:5.3,h:1.0,fontSize:42,bold:true,color:C.white});
+        T(s,'ใช้ทำอะไร',{x:X0+0.3,y:3.0,w:5.3,h:0.35,fontSize:14,bold:true,color:C.gold});
+        T(s,bul('use','บรรทัดละรายการ').map(x=>(x.options.color=x.options.color||C.white,x)),{x:X0+0.3,y:3.4,w:5.3,h:3.2,fontSize:15,color:C.white});
+        lb(s,'เป้าหมายสำคัญในปีแรก',6.75,1.35,6); const ms=lines(v('ms'));
+        (ms.length?ms:['บรรทัดละข้อ']).slice(0,5).forEach((t,i)=>{const y=1.8+i*0.82; s.addShape(P.shapes.OVAL,{x:6.75,y,w:0.5,h:0.5,fill:{color:C.red},line:{color:C.red}}); T(s,String(i+1),{x:6.75,y,w:0.5,h:0.5,fontSize:14,bold:true,color:C.white,align:'center',valign:'middle',fit:'none'}); T(s,ms.length?t:[{text:t,options:{italic:true,color:C.stone}}],{x:7.4,y:y-0.02,w:5.38,h:0.75,fontSize:16});});
+        box(s,6.75,6.1,6.03,0.62,'F1EFEA'); T(s,'จากประมาณการ: เงินทุนที่ต้องเตรียม '+fmt(m.need)+' บาท · คืนทุน'+(r.pay?'ราวเดือนที่ '+r.pay:'ยังไม่คืนทุนใน 3 ปี'),{x:6.9,y:6.1,w:5.8,h:0.62,fontSize:12.5,color:C.gray,valign:'middle'}); }
+      // 12 team
+      { const s=shell(12,'ทีมของเรา'); const L=lines(v('roles')).slice(0,6);
+        if(!L.length) T(s,'บรรทัดละคน: ชื่อ – หน้าที่ – ความถนัด',{x:X0,y:3,w:XW,h:1,fontSize:22,italic:true,color:C.stone,align:'center'});
+        const w=(XW-0.5)/3,h=2.55;
+        L.forEach((x,i)=>{const p=x.split(/\s+[–—-]\s+/),cx=X0+(i%3)*(w+0.25),cy=1.35+Math.floor(i/3)*(h+0.25); box(s,cx,cy,w,h,C.parch); rect(s,cx+0.15,cy,w-0.3,0.08,C.red);
+          T(s,p[0],{x:cx+0.25,y:cy+0.3,w:w-0.5,h:0.65,fontSize:24,bold:true,color:C.navy}); T(s,p.slice(1).join('\n'),{x:cx+0.25,y:cy+1.0,w:w-0.5,h:1.4,fontSize:15});}); }
+      // 13 validation
+      { const s=shell(13,'สิ่งที่เราตรวจแล้ว และสิ่งที่จะไปทดสอบต่อ');
+        box(s,X0,1.3,6.0,5.45,C.pGreen); lb(s,'ตรวจกับลูกค้าหรือแหล่งจริงแล้ว',X0+0.2,1.45,5.6,C.green); T(s,bul('checked','บรรทัดละข้อ'),{x:X0+0.2,y:1.85,w:5.6,h:4.8,fontSize:18});
+        box(s,6.78,1.3,6.0,5.45,C.pGold); lb(s,'จะไปทดสอบต่อ และวิธีทดสอบ',6.98,1.45,5.6,'8B5E00'); T(s,bul('totest','บรรทัดละข้อ'),{x:6.98,y:1.85,w:5.6,h:4.8,fontSize:18}); }
+      // 14 appendix
+      { const s=shell(14,'ภาคผนวก: AI ช่วยเราได้แค่ไหน','ภาคผนวก สำหรับการเรียน ไม่ต้องนำเสนอ');
+        const dots=x=>'●'.repeat(x)+'○'.repeat(3-x);
+        const rows=[[{text:'รอบ'}].concat(CRIT.map(c=>({text:c[1]})))].concat(ROUNDS.map(rd=>[{text:rd.n+' '+rd.short}].concat([0,1,2].map(i=>({text:dots(((S.score[rd.n]||[])[i])||0),options:{align:'center',color:C.green}})))));
+        s.addTable(rows.map((row,ri)=>row.map(c=>({text:c.text,options:Object.assign({fontFace:FONT,fontSize:13,bold:ri===0,color:ri===0?C.white:C.ink,fill:{color:ri===0?C.navy:(ri%2?C.white:'F7F3EA')},valign:'middle'},c.options||{})}))),{x:X0,y:1.35,w:6.6,colW:[2.4,1.4,1.4,1.4],rowH:0.55,border:{type:'solid',pt:0.5,color:C.line}});
+        T(s,'● = คะแนนที่ทีมให้คำตอบของ AI ในรอบนั้น (เต็ม 3)',{x:X0,y:6.0,w:6.6,h:0.35,fontSize:11,color:C.gray});
+        [['AI ช่วยเราได้ดีเรื่อง','good'],['เรื่องที่ต้องแก้หรือทิ้ง','fix'],['สิ่งที่ทีมได้เรียนรู้','learn']].forEach(([l,k],i)=>{const y=1.35+i*1.82; box(s,7.45,y,5.33,1.65,C.parch); lb(s,l,7.65,y+0.1,5,C.red); T(s,S.lesson[k]?S.lesson[k]:[{text:'—',options:{italic:true,color:C.stone}}],{x:7.65,y:y+0.48,w:4.95,h:1.1,fontSize:14});}); }
+      const blob=await P.write({outputType:'blob'});
+      await saveBlob(fname('.pptx'),blob,show,'บันทึกไฟล์ PowerPoint แล้ว เปิดแก้ต่อใน PowerPoint หรือ Google Slides ได้');
+    }catch(e){console.error(e);show('สร้างไฟล์ PowerPoint ไม่สำเร็จ: '+(e&&e.message||e))}
+  }
   async function exportPDF(msg){
     const show=t=>{msg.hidden=false;msg.textContent=t};
     if(!window.jspdf||!window.html2canvas){show('โหลดเครื่องมือสร้าง PDF ไม่สำเร็จ ลองรีเฟรชหน้าอีกครั้ง');return}
